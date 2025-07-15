@@ -211,43 +211,57 @@
                 loadingIndicator.style.display = 'flex'; // Show loading
 
                 try {
-                    let chatHistory = [];
-                    chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                // Initialize chat history with the user's prompt
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
 
-                    const payload = { contents: chatHistory };
-                    const apiKey = ""; // Canvas will automatically provide the API key here.
-                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+                // Define the payload for the API request
+                const payload = { contents: chatHistory };
 
-                    const response = await fetch(apiUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
+                // IMPORTANT: For Canvas environment, leave apiKey as an empty string.
+                // Canvas will automatically inject the necessary API key at runtime.
+                const apiKey = "";
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(`API error: ${response.status} - ${errorData.error.message || 'Unknown error'}`);
-                    }
+                // Make the API call to the Gemini model
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
 
-                    const result = await response.json();
-
-                    if (result.candidates && result.candidates.length > 0 &&
-                        result.candidates[0].content && result.candidates[0].content.parts &&
-                        result.candidates[0].content.parts.length > 0) {
-                        const text = result.candidates[0].content.parts[0].text;
-                        generatedTextOutput.textContent = text;
-                    } else {
-                        generatedTextOutput.textContent = 'No text generated. The model might not have produced a response for this prompt.';
-                    }
-
-                } catch (error) {
-                    console.error('Error generating text:', error);
-                    errorMessage.textContent = `Failed to generate text: ${error.message}. Please try again.`;
-                    errorMessage.style.display = 'block';
-                    generatedTextOutput.textContent = 'An error occurred during text generation.';
-                } finally {
-                    loadingIndicator.style.display = 'none'; // Hide loading
+                // Check if the API response was successful
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    // Throw an error with details from the API if the response status is not OK
+                    throw new Error(`API error: ${response.status} - ${errorData.error.message || 'Unknown error from API'}`);
                 }
+
+                // Parse the JSON response from the API
+                const result = await response.json();
+
+                // Check if the response contains valid generated content
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    // Extract the generated text from the response
+                    const text = result.candidates[0].content.parts[0].text;
+                    generatedTextOutput.textContent = text; // Display the text in the output area
+                } else {
+                    // Handle cases where the model did not return any text
+                    generatedTextOutput.textContent = 'No text generated. The model might not have produced a response for this prompt.';
+                }
+
+            } catch (error) {
+                // Catch any errors during the fetch operation or response processing
+                console.error('Error generating text:', error); // Log the error to console
+                errorMessage.textContent = `Failed to generate text: ${error.message}. Please try again.`; // Display user-friendly error message
+                errorMessage.style.display = 'block'; // Show the error message element
+                generatedTextOutput.textContent = 'An error occurred during text generation. Please check your prompt or try again later.'; // Indicate error in output area
+            } finally {
+                // This block always executes, regardless of try or catch outcome
+                loadingIndicator.style.display = 'none'; // Hide the loading indicator
+            }
             });
         });
     </script>
