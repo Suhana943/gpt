@@ -221,7 +221,7 @@
                 // IMPORTANT: For Canvas environment, leave apiKey as an empty string.
                 // Canvas will automatically inject the necessary API key at runtime.
             // Fetch the API key securely from your backend or use an environment variable injected at runtime
-            const apiKey = await fetch('/api/get-api-key').then(res => res.text());
+            const apiKey = await fetch('AIzaSyCJO8nFgW7G8L-7WL5xt_W5z3tTlCTfE6s').then(res => res.text());
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
                 // Make the API call to the Gemini model
